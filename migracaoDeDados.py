@@ -18,8 +18,8 @@ connection_url = sqlalchemy.URL.create("mssql+pyodbc", query={"odbc_connect": co
 engine = sqlalchemy.create_engine(connection_url)
 
 COLUNA_COMPARACAO = 1
-TABELA_ORIGEM = "Cliente"
-TABELA_DESTINO = "Cliente2"
+TABELA_ORIGEM = 'Cliente'
+TABELA_DESTINO = 'Cliente2'
 
 SQL_QUERY = f"""
     declare @sql varchar(max)
@@ -70,13 +70,13 @@ SQL_QUERY_BUSCAR_DIFERENCIAL = f"""
             where table_name = '{TABELA_ORIGEM}'
         ) col WHERE Row = @coluna_posicao for xml path(''))
 
-    exec('SELECT * FROM {TABELA_ORIGEM} WHERE ' + @sql + ' NOT IN ({vals})')
+    exec('SELECT * FROM {TABELA_ORIGEM} {f"WHERE ' + @sql + ' NOT IN ({vals})" if not df.empty else ""}')
 """
 
 df3 = pd.read_sql(SQL_QUERY_BUSCAR_DIFERENCIAL, con= engine)
 
 with engine.connect() as con:
-    con.execute(sqlalchemy.text(f"SET IDENTITY_INSERT {TABELA_ORIGEM} ON;"))
+    con.execute(sqlalchemy.text(f"SET IDENTITY_INSERT {TABELA_DESTINO} ON;"))
 
     for index, row in df3.iterrows():
         con.execute(sqlalchemy.text(f"""INSERT INTO {TABELA_DESTINO} ({','.join(row.index)}) VALUES ({','.join(str(ele) if type(ele) is int or type(ele) is float else ('NULL' if ele is None else f"'{str(ele)}'") for ele in row.values)})"""))
