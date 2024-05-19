@@ -19,7 +19,15 @@ engine = sqlalchemy.create_engine(connection_url)
 
 COLUNA_COMPARACAO = 1
 TABELA_ORIGEM = 'Cliente'
-TABELA_DESTINO = 'Cliente2'
+TABELA_DESTINO = 'Cliente3'
+
+if not sqlalchemy.inspect(engine).has_table(TABELA_ORIGEM):
+    print(f'A tabela {TABELA_ORIGEM} não existe na base {DATABASE}')
+    raise SystemExit
+
+if not sqlalchemy.inspect(engine).has_table(TABELA_DESTINO):
+    print(f'A tabela {TABELA_DESTINO} não existe na base {DATABASE}')
+    raise SystemExit
 
 SQL_QUERY = f"""
     declare @sql varchar(max)
@@ -52,7 +60,7 @@ SQL_QUERY2 = f"""
 df1 = pd.read_sql(SQL_QUERY, con=engine)
 df2 = pd.read_sql(SQL_QUERY2, con=engine)
 
-df = df1.merge(df2, how='right')
+df = df1.merge(df2, how='right', on=None, validate='1:1')
 
 x = df.to_string(header=False,
                   index=False,
